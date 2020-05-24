@@ -10,10 +10,22 @@ from boxsdk.util.chunked_uploader import ChunkedUploader
 from .base_object import BaseObject
 from ..pagination.limit_offset_based_dict_collection import LimitOffsetBasedDictCollection
 
+from typing import TYPE_CHECKING
+
 
 class UploadSession(BaseObject):
     _item_type = 'upload_session'
     _parent_item_type = 'file'
+
+    if TYPE_CHECKING:
+        @property
+        def part_size(self):
+            # type: () -> int
+            pass
+        @property
+        def total_parts(self):
+            # type: () -> int
+            pass
 
     def get_url(self, *args):
         """

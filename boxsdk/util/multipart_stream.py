@@ -6,6 +6,8 @@ from collections import OrderedDict
 
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
+from typing import Dict
+
 
 class MultipartStream(MultipartEncoder):
     """
@@ -14,6 +16,7 @@ class MultipartStream(MultipartEncoder):
     receiving the file bytes.
     """
     def __init__(self, data, files):
+        # type: (Dict[object, object], Dict[object, object]) -> None
         fields = OrderedDict()
         for k in data:
             fields[k] = data[k]

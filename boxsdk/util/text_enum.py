@@ -7,7 +7,9 @@ from six import text_type
 
 class TextEnum(text_type, Enum):
     def __repr__(self):
+        # type: () -> str
         return self._value_  # pylint:disable=no-member
 
     def __str__(self):
+        # type: () -> str
         return str(self.value)  # pylint:disable=no-member

@@ -6,13 +6,16 @@ import inspect
 
 from .chain_map import ChainMap
 
-from typing import Any
+from typing import Any, Dict, Mapping, Optional, Tuple, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .base_api_json_object import BaseAPIJSONObjectMeta
+    from .session import Session
 
 
 __all__ = list(map(str, ['Translator']))
 
 # pylint: disable=invalid-name
-inspect_signature = None
 try:
     inspect_signature = inspect.signature
 except AttributeError:  # pragma: no cover
@@ -21,6 +24,7 @@ except AttributeError:  # pragma: no cover
 
 
 def _get_object_id(obj):
+    # type: (Dict[str, object]) -> Optional[object]
     """
     Gets the ID for an API object.
 
@@ -75,6 +79,7 @@ class Translator(ChainMap):
     _default_translator = {}  # type: object  # Will be set to a `Translator` instance below, after the class is defined.
 
     def __init__(self, *translation_maps, **kwargs):
+        # type: (Tuple[Mapping[str, Type[BaseAPIJSONObjectMeta]], ...], **Any) -> None
         """Baseclass override.
 
         :param translation_maps:
@@ -100,41 +105,35 @@ class Translator(ChainMap):
             safe from mutation in normal usage scenarios.
         :type new_child:  `bool`
         """
-        translation_maps = list(translation_maps)
+        translation_maps_list = list(translation_maps)
         extend_default_translator = kwargs.pop('extend_default_translator', True)
         new_child = kwargs.pop('new_child', True)
         if extend_default_translator:
-            translation_maps.append(self._default_translator)
+            translation_maps_list.append(self._default_translator)  # type: ignore[arg-type]
         if new_child:
-            translation_maps.insert(0, {})
-        super(Translator, self).__init__(*translation_maps, **kwargs)
+            translation_maps_list.insert(0, {})  # type: ignore[arg-type]
+        super(Translator, self).__init__(*translation_maps_list, **kwargs)  # type: ignore[call-arg, arg-type]
 
     def register(self, type_name, box_cls):
+        # type: (str, Type[BaseAPIJSONObjectMeta]) -> None
         """Associate a Box object class to handle Box API item responses with the given type name.
 
         :param type_name:
             The type name to be registered.
-        :type type_name:
-            `unicode`
         :param box_cls:
             The Box object class, which will be associated with the type name provided.
-        :type box_cls:
-            :class:`BaseAPIJSONObjectMeta`
         """
         self[type_name] = box_cls
 
     def get(self, key, default=None):
+        # type: (str, Optional[BaseAPIJSONObjectMeta]) -> BaseAPIJSONObjectMeta
         """Get the box object class associated with the given type name.
 
         :param key:
             The type name to be translated.
-        :type key:
-            `unicode`
         :param default:
             (optional) The default Box object class to return.
             Defaults to `BaseObject`.
-        :type default:  :class:`BaseAPIJSONObjectMeta`
-        :rtype:   :class:`BaseAPIJSONObjectMeta`
         """
         from boxsdk.object.base_object import BaseObject
         if default is None:
@@ -142,17 +141,14 @@ class Translator(ChainMap):
         return super(Translator, self).get(key, default)
 
     def translate(self, session, response_object):
+        # type: (Session, Dict[Any, Any]) -> object
         """
         Translate a given API response object into SDK classes, rescursively translating any subobjects.
 
         :param session:
             The SDK session to use for any objects that require a session (i.e. classes that make API calls)
-        :type session:
-            class:`Session`
         :param response_object:
             The JSON response object from the API, which will be translated
-        :type response_object:
-            `dict`
         :return:
             The translated object
         """
