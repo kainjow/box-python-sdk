@@ -6,6 +6,8 @@ import six
 
 from ..util.translator import Translator
 
+from typing import Optional, Tuple
+
 
 class BaseAPIJSONObjectMeta(type):
     """
@@ -71,8 +73,8 @@ class BaseAPIJSONObject(object):
     # NOTE: When defining a leaf class with an _item_type in this SDK, it's
     # also important to add the module name to __all__ in object/__init__.py,
     # so that it will be imported and registered with the default translator.
-    _item_type = None
-    _untranslated_fields = ()
+    _item_type = None  # type: Optional[str]
+    _untranslated_fields = ()  # type: Tuple[str, ...]
 
     def __init__(self, response_object=None, **kwargs):
         """

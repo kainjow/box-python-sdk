@@ -16,5 +16,5 @@ except ImportError:
 
     # Make sure that `ChainMap` is a new-style class.
     @wraps(_ChainMap, updated=())
-    class ChainMap(_ChainMap, object):
+    class ChainMap(_ChainMap, object):  # type: ignore[no-redef]
         __slots__ = ()

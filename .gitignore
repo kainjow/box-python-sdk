@@ -80,3 +80,6 @@ target/
 
 # Misc
 tokens.pk
+
+# mypy
+.mypy_cache

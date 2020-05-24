@@ -12,7 +12,7 @@ from ..util.text_enum import TextEnum
 
 
 # pylint:disable=too-many-ancestors
-class EventsStreamType(with_metaclass(ExtendableEnumMeta, TextEnum)):
+class EventsStreamType(with_metaclass(ExtendableEnumMeta, TextEnum)):  # type: ignore[misc]
     """An enum of all possible values of the `stream_type` parameter for user events.
 
     The value of the `stream_type` parameter determines the type of events

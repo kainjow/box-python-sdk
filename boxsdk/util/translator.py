@@ -6,6 +6,8 @@ import inspect
 
 from .chain_map import ChainMap
 
+from typing import Any
+
 
 __all__ = list(map(str, ['Translator']))
 
@@ -70,7 +72,7 @@ class Translator(ChainMap):
     #     `BoxSession`.
     #     - Calling `client.translator.register()` on an existing `Client`.
     # :type _default_translator:   :class:`Translator`
-    _default_translator = {}   # Will be set to a `Translator` instance below, after the class is defined.
+    _default_translator = {}  # type: object  # Will be set to a `Translator` instance below, after the class is defined.
 
     def __init__(self, *translation_maps, **kwargs):
         """Baseclass override.

@@ -17,7 +17,7 @@ class APIJSONObjectMeta(BaseAPIJSONObjectMeta, ABCMeta):
     pass
 
 
-class APIJSONObject(with_metaclass(APIJSONObjectMeta, BaseAPIJSONObject, Mapping)):
+class APIJSONObject(with_metaclass(APIJSONObjectMeta, BaseAPIJSONObject, Mapping)):  # type: ignore[misc]
     """Class representing objects that are not part of the REST API."""
 
     def __len__(self):

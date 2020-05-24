@@ -458,7 +458,7 @@ class JWTAuth(OAuth2):
                     TypeError("rsa_private_key_passphrase must contain binary data (bytes/str), not a text/unicode string"),
                     None,
                 )
-        if not isinstance(passphrase, (binary_type, NoneType)):
+        if not isinstance(passphrase, (binary_type, NoneType)):  # type: ignore[misc]
             raise TypeError(
                 "rsa_private_key_passphrase must contain binary data (bytes/str), got {0!r}"
                 .format(passphrase.__class__.__name__)
