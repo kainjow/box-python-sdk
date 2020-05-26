@@ -3,6 +3,8 @@
 from __future__ import unicode_literals
 from .oauth2 import OAuth2
 
+from typing import Any, Callable, Optional, Tuple
+
 
 class RemoteOAuth2Mixin(OAuth2):
     """
@@ -10,18 +12,18 @@ class RemoteOAuth2Mixin(OAuth2):
     Allows for storing auth tokens remotely.
 
     """
-    def __init__(self, retrieve_access_token=None, *args, **kwargs):
+    def __init__(self, retrieve_access_token, *args, **kwargs):
+        # type: (Callable[[Optional[str]], str], *Any, **Any) -> None
         """
         :param retrieve_access_token:
             Callback to exchange an existing access token for a new one.
-        :type retrieve_access_token:
-            `callable` of `unicode` => `unicode`
         """
         # pylint:disable=keyword-arg-before-vararg
         self._retrieve_access_token = retrieve_access_token
         super(RemoteOAuth2Mixin, self).__init__(*args, **kwargs)
 
     def _refresh(self, access_token):
+        # type: (Optional[str]) -> Tuple[Optional[str], Optional[str]]
         """
         Base class override. Ask the remote host for a new token.
         """
