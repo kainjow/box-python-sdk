@@ -4,21 +4,30 @@ from __future__ import unicode_literals, absolute_import
 import json
 
 from ..auth.oauth2 import TokenResponse
-from ..session.session import Session, AuthorizedSession
 from ..object.cloneable import Cloneable
-from ..util.api_call_decorator import api_call
-from ..object.search import Search
-from ..object.events import Events
 from ..object.collaboration_whitelist import CollaborationWhitelist
+from ..object.enterprise import Enterprise
+from ..object.legal_hold_policy import LegalHoldPolicy
+from ..object.events import Events
+from ..object.group import Group
+from ..object.item import Item
+from ..object.metadata_template import MetadataField, MetadataTemplate
+from ..object.retention_policy import RetentionPolicy
+from ..object.search import Search
+from ..object.terms_of_service import TermsOfService
 from ..object.trash import Trash
+from ..object.user import User
+from ..object.webhook import Webhook
 from ..pagination.limit_offset_based_object_collection import LimitOffsetBasedObjectCollection
 from ..pagination.marker_based_object_collection import MarkerBasedObjectCollection
+from ..session.session import Session, AuthorizedSession
+from ..util.api_call_decorator import api_call
 from ..util.shared_link import get_shared_link_header
 
 from typing import Any, Dict, List, Iterable, Mapping, Optional, Union, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..auth.oauth2 import OAuth2
+    from ..auth.oauth2 import OAuth2, TokenScope
     from ..network.network_interface import NetworkResponse
     from ..object.collection import Collection
     from ..object.collaboration import Collaboration
@@ -31,18 +40,11 @@ if TYPE_CHECKING:
     from ..object.file_version_retention import FileVersionRetention
     from ..object.folder import Folder
     from ..object.email_alias import EmailAlias
-    from ..object.enterprise import Enterprise
-    from ..object.group import Group
     from ..object.group_membership import GroupMembership
     from ..object.invite import Invite
-    from ..object.item import Item
     from ..object.legal_hold import LegalHold
-    from ..object.legal_hold_policy import LegalHoldPolicy
     from ..object.legal_hold_policy_assignment import LegalHoldPolicyAssignment
     from ..object.metadata_cascade_policy import MetadataCascadePolicy
-    from ..object.metadata_field import MetadataField
-    from ..object.metadata_template import MetadataTemplate
-    from ..object.retention_policy import RetentionPolicy
     from ..object.retention_policy_assignment import RetentionPolicyAssignment
     from ..object.storage_policy import StoragePolicy
     from ..object.storage_policy_assignment import StoragePolicyAssignment
@@ -50,10 +52,7 @@ if TYPE_CHECKING:
     from ..object.task_assignment import TaskAssignment
     from ..object.terms_of_service import TermsOfService, TermsOfServiceType, TermsOfServiceStatus
     from ..object.terms_of_service_user_status import TermsOfServiceUserStatus
-    from ..object.token_scope import TokenScope
     from ..object.upload_session import UploadSession
-    from ..object.user import User
-    from ..object.webhook import Webhook
     from ..object.web_link import WebLink
     from ..util.translator import Translator
 
@@ -356,10 +355,12 @@ class Client(Cloneable):
             policy_attributes['is_ongoing'] = is_ongoing
         box_response = self._session.post(url, data=json.dumps(policy_attributes))
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, LegalHoldPolicy)
+        return obj
 
     @api_call
     def get_legal_hold_policies(self, policy_name=None, limit=None, marker=None, fields=None):
@@ -446,10 +447,12 @@ class Client(Cloneable):
         """
         user = self.user().get(fields=['enterprise'])
         enterprise_object = user['enterprise']
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=enterprise_object,
         )
+        assert isinstance(obj, Enterprise)
+        return obj
 
     @api_call
     def users(self, limit=None, offset=0, filter_term=None, user_type=None, fields=None, use_marker=False, marker=None):
@@ -608,10 +611,12 @@ class Client(Cloneable):
         }
         box_response = self._session.post(url, data=json.dumps(webhook_attributes))
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, Webhook)
+        return obj
 
     @api_call
     def get_webhooks(self, limit=None, marker=None, fields=None):
@@ -688,10 +693,12 @@ class Client(Cloneable):
             additional_params['fields'] = ','.join(fields)
         box_response = self._session.post(url, data=json.dumps(body_attributes), params=additional_params)
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, Group)
+        return obj
 
     def storage_policy(self, policy_id):
         # type: (str) -> StoragePolicy
@@ -902,10 +909,12 @@ class Client(Cloneable):
             retention_attributes['custom_notification_recipients'] = user_list
         box_response = self._session.post(url, data=json.dumps(retention_attributes))
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response
         )
+        assert isinstance(obj, RetentionPolicy)
+        return obj
 
     @api_call
     def get_retention_policies(
@@ -974,10 +983,12 @@ class Client(Cloneable):
         }
         box_response = self._session.post(url, data=json.dumps(body))
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, TermsOfService)
+        return obj
 
     @api_call
     def get_file_version_retentions(
@@ -1100,10 +1111,12 @@ class Client(Cloneable):
             self.get_url('shared_items'),
             headers=get_shared_link_header(shared_link, password),
         ).json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session.with_shared_link(shared_link, password),
             response_object=response,
         )
+        assert isinstance(obj, Item)
+        return obj
 
     @api_call
     def make_request(self, method, url, **kwargs):
@@ -1147,10 +1160,12 @@ class Client(Cloneable):
             user_attributes['is_platform_access_only'] = True
         box_response = self._session.post(url, data=json.dumps(user_attributes))
         response = box_response.json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, User)
+        return obj
 
     @api_call
     def get_pending_collaborations(self, limit=None, offset=None, fields=None):
@@ -1388,7 +1403,9 @@ class Client(Cloneable):
             body['templateKey'] = template_key
 
         response = self._session.post(url, data=json.dumps(body)).json()
-        return self.translator.translate(
+        obj = self.translator.translate(
             session=self._session,
             response_object=response,
         )
+        assert isinstance(obj, MetadataTemplate)
+        return obj
