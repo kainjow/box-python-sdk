@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod, abstractproperty
 from six import add_metaclass
 
-from typing import Any, Callable, Mapping, Type
+from typing import Any, Callable, Dict, Mapping, Type
 
 
 @add_metaclass(ABCMeta)
@@ -69,7 +69,7 @@ class NetworkResponse(object):
 
     @abstractmethod
     def json(self):
-        # type: () -> Mapping[Any, Any]
+        # type: () -> Dict[Any, Any]
         """Return the parsed JSON response.
 
         :rtype:

@@ -13,7 +13,7 @@ from six import text_type, PY2
 from .network_interface import Network, NetworkResponse
 from ..util.log import sanitize_dictionary
 
-from typing import Any, Callable, cast, Mapping, Tuple, Type, Union
+from typing import Any, Callable, cast, Dict, Mapping, Tuple, Type, Union
 from types import TracebackType
 
 
@@ -165,7 +165,7 @@ class DefaultNetworkResponse(NetworkResponse):
             self.log(can_safely_log_content=True)
 
     def json(self):
-        # type: () -> Mapping[Any, Any]
+        # type: () -> Dict[Any, Any]
         """Base class override."""
         try:
             return self._request_response.json()
