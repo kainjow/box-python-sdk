@@ -2,6 +2,14 @@
 
 from __future__ import unicode_literals, absolute_import
 
+from typing import Optional, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    T = TypeVar('T', bound='Cloneable')
+
+    from .user import User
+    from ..session.session import Session
+
 
 class Cloneable(object):
     """
@@ -10,32 +18,29 @@ class Cloneable(object):
     """
 
     def as_user(self, user):
+        # type: (T, User) -> T
         """
         Returns a new endpoint object with default headers set up to make requests as the specified user.
 
         :param user:
             The user to impersonate when making API requests.
-        :type user:
-            :class:`User`
         """
         return self.clone(self.session.as_user(user))
 
     def with_shared_link(self, shared_link, shared_link_password):
+        # type: (T, str, Optional[str]) -> T
         """
         Returns a new endpoint object with default headers set up to make requests using the shared link for auth.
 
         :param shared_link:
             The shared link.
-        :type shared_link:
-            `unicode`
         :param shared_link_password:
             The password for the shared link.
-        :type shared_link_password:
-            `unicode`
         """
         return self.clone(self.session.with_shared_link(shared_link, shared_link_password))
 
     def clone(self, session=None):
+        # type: (T, Optional[Session]) -> T
         """
         Returns a copy of this cloneable object using the specified session.
 
@@ -48,10 +53,8 @@ class Cloneable(object):
 
     @property
     def session(self):
+        # type: () -> Session
         """
         Return the Box session being used to make requests.
-
-        :rtype:
-            :class:`BoxSession`
         """
         raise NotImplementedError
