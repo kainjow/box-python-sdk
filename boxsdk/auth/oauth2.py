@@ -403,7 +403,7 @@ class OAuth2(object):
                     network_response.content,
                     url,
                     'POST',
-                    network_response,
+                    network_response,  # type: ignore[arg-type]
                 )
             self._store_tokens(None, None)
 

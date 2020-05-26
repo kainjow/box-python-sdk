@@ -54,6 +54,7 @@ if TYPE_CHECKING:
     from ..object.terms_of_service_user_status import TermsOfServiceUserStatus
     from ..object.upload_session import UploadSession
     from ..object.web_link import WebLink
+    from ..session.box_response import BoxResponse
     from ..util.translator import Translator
 
     T = TypeVar('T', bound='Client')
@@ -1120,7 +1121,7 @@ class Client(Cloneable):
 
     @api_call
     def make_request(self, method, url, **kwargs):
-        # type: (str, str, **Any) -> NetworkResponse
+        # type: (str, str, **Any) -> BoxResponse
         """
         Make an authenticated request to the Box API.
 
@@ -1130,8 +1131,6 @@ class Client(Cloneable):
             The URL for the request.
         :return:
             The network response for the given request.
-        :rtype:
-            :class:`BoxResponse`
         :raises:
             :class:`BoxAPIException`
         """
