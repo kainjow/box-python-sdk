@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod, abstractproperty
 from six import add_metaclass
 
+from typing import Any, Callable, Mapping, Type
+
 
 @add_metaclass(ABCMeta)
 class Network(object):
@@ -14,44 +16,35 @@ class Network(object):
 
     @abstractmethod
     def request(self, method, url, access_token, **kwargs):
+        # type: (str, str, str, **Any) -> NetworkResponse
         """
         Make a network request to the given url with the given method.
 
         :param method:
             The HTTP verb that should be used to make the request.
-        :type method:
-            `unicode`
         :param url:
             The URL for the request.
-        :type url:
-            `unicode`
         :param access_token:
             The OAuth2 access token used to authorize the request.
-        :type access_token:
-            `unicode`
-        :rtype:   :class:`NetworkResponse`
         """
         raise NotImplementedError  # pragma: no cover
 
     @abstractmethod
     def retry_after(self, delay, request_method, *args, **kwargs):
+        # type: (float, Callable[..., Any], *Any, **Any) -> NetworkResponse
         """
         Make a network request after a given delay.
 
         :param delay:
             How long until the request should be executed.
-        :type delay:
-            `float`
         :param request_method:
             A callable that will execute the request.
-        :type request_method:
-            `callable`
-        :rtype:   :class:`NetworkResponse`
         """
         raise NotImplementedError  # pragma: no cover
 
     @property
     def network_response_constructor(self):
+        # type: () -> Type[NetworkResponse]
         """The constructor to use for creating NetworkResponse instances.
 
         This is not implemented by default, and is not a required part of the
@@ -66,7 +59,6 @@ class Network(object):
         :return:
             A callable that returns an instance of :class:`NetworkResponse`.
             Most commonly, this will be a subclass of :class:`NetworkResponse`.
-        :rtype:   `type` or `callable`
         """
         return NetworkResponse
 
@@ -77,6 +69,7 @@ class NetworkResponse(object):
 
     @abstractmethod
     def json(self):
+        # type: () -> Mapping[Any, Any]
         """Return the parsed JSON response.
 
         :rtype:
@@ -86,6 +79,7 @@ class NetworkResponse(object):
 
     @abstractproperty
     def content(self):
+        # type: () -> bytes
         """Return the content of the response body.
 
         :rtype:
@@ -95,46 +89,33 @@ class NetworkResponse(object):
 
     @abstractproperty
     def status_code(self):
+        # type: () -> int
         """Return the HTTP status code of the response.
-
-        :rtype:
-            `int`
         """
         raise NotImplementedError  # pragma: no cover
 
     @abstractproperty
     def ok(self):
+        # type: () -> bool
         """Return whether or not the request was successful.
-
-        :rtype:
-            `bool`
         """
         # pylint:disable=invalid-name
         raise NotImplementedError  # pragma: no cover
 
     @abstractproperty
     def headers(self):
-        """Return the response headers.
-
-        :rtype:
-            `dict`
-        """
+        # type: () -> Mapping[str, str]
+        """Return the response headers."""
         raise NotImplementedError  # pragma: no cover
 
     @abstractproperty
     def response_as_stream(self):
-        """Return a stream containing the raw network response.
-
-        :rtype:
-            `stream`
-        """
+        # type: () -> Any
+        """Return a stream containing the raw network response."""
         raise NotImplementedError  # pragma: no cover
 
     @abstractproperty
     def access_token_used(self):
-        """Return the access token used to make the request.
-
-        :rtype:
-            `unicode`
-        """
+        # type: () -> str
+        """Return the access token used to make the request."""
         raise NotImplementedError  # pragma: no cover
