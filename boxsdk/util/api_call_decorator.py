@@ -6,8 +6,13 @@ from functools import update_wrapper, wraps
 
 from ..object.cloneable import Cloneable
 
+from typing import Any, Callable, cast, Optional, TypeVar
+
+F = TypeVar('F', bound=Callable[..., Any])
+
 
 def api_call(method):
+    # type: (F) -> F
     """
     Designates the decorated method as one that makes a Box API call.
     The decorated method can then accept a new keyword argument `extra_network_parameters`,
@@ -27,21 +32,24 @@ def api_call(method):
     :rtype:
         :class:`APICallWrapper`
     """
-    return APICallWrapper(method)
+    return cast(F, APICallWrapper(method))
 
 
 class APICallWrapper(object):
 
     def __init__(self, func_that_makes_an_api_call):
+        # type: (Callable[..., Any]) -> None
         super(APICallWrapper, self).__init__()
         self._func_that_makes_an_api_call = func_that_makes_an_api_call
         self.__name__ = func_that_makes_an_api_call.__name__
         update_wrapper(self, func_that_makes_an_api_call)
 
     def __call__(self, cloneable_instance, *args, **kwargs):
+        # type: (object, Any, Any) -> Any
         return self.__get__(cloneable_instance, type(cloneable_instance))(*args, **kwargs)
 
     def __get__(self, _instance, owner):
+        # type: (Optional[object], object) -> Any
         # `APICallWrapper` is imitating a function. For native functions,
         # ```func.__get__(None, cls)``` always returns `func`.
         if _instance is None:
