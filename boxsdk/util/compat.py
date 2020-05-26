@@ -5,11 +5,14 @@ from __future__ import absolute_import, division, unicode_literals
 import six
 from six.moves import map
 
+from typing import Any, Iterable
+
 
 NoneType = type(None)
 
 
 def with_metaclass(meta, *bases, **with_metaclass_kwargs):
+    # type: (type, type, **Any) -> type
     """Extends the behavior of six.with_metaclass.
 
     The normal usage (expanded to include temporaries, to make the illustration
@@ -58,22 +61,24 @@ def with_metaclass(meta, *bases, **with_metaclass_kwargs):
 
     [1] <https://github.com/benjaminp/six/pull/178>
     """
-    temporary_class = six.with_metaclass(meta, *bases, **with_metaclass_kwargs)
+    temporary_class = six.with_metaclass(meta, *bases, **with_metaclass_kwargs)  # type: ignore[call-arg]
     temporary_metaclass = type(temporary_class)
 
-    class TemporaryMetaSubclass(temporary_metaclass, _most_derived_metaclass(meta, bases)):
+    class TemporaryMetaSubclass(temporary_metaclass, _most_derived_metaclass(meta, bases)):  # type: ignore[valid-type,misc]
 
         if '__prepare__' not in temporary_metaclass.__dict__:
             # six<1.11.0, __prepare__ is not defined on the temporary metaclass.
 
             @classmethod
             def __prepare__(mcs, name, this_bases, **kwds):  # pylint:disable=unused-argument,arguments-differ
+                # type: (type, str, type, **Any) -> Any
                 return meta.__prepare__(name, bases, **kwds)
 
     return type.__new__(TemporaryMetaSubclass, str('temporary_class'), bases, {})
 
 
 def _most_derived_metaclass(meta, bases):
+    # type: (type, Iterable[type]) -> type
     """Selects the most derived metaclass of all the given metaclasses.
 
     This will be the same metaclass that is selected by
@@ -92,9 +97,6 @@ def _most_derived_metaclass(meta, bases):
     which is a non-strict subclass of every item in that set.
 
     If no such item exists, then :exc:`TypeError` is raised.
-
-    :type meta:   `type`
-    :type bases:  :class:`Iterable` of `type`
     """
     most_derived_metaclass = meta
     for base_type in map(type, bases):
@@ -102,5 +104,5 @@ def _most_derived_metaclass(meta, bases):
             most_derived_metaclass = base_type
         elif not issubclass(most_derived_metaclass, base_type):
             # Raises TypeError('metaclass conflict: ...')
-            return type.__new__(meta, str('temporary_class'), bases, {})
+            return type.__new__(meta, str('temporary_class'), bases, {})  # type: ignore[call-overload]
     return most_derived_metaclass

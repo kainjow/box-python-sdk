@@ -11,6 +11,11 @@ from enum import EnumMeta
 from six import reraise
 from six.moves import map   # pylint:disable=redefined-builtin
 
+from typing import Any, Iterator, List, Mapping, Type, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    T = TypeVar('T')
+
 
 __all__ = list(map(str, ['ExtendableEnumMeta']))
 
@@ -49,6 +54,7 @@ class ExtendableEnumMeta(EnumMeta):
     """
 
     def lookup(cls, value):
+        # type: (object) -> object
         """Custom value lookup, which does recursive lookups on subclasses.
 
         If this is a leaf enum class with defined members, this acts the same
@@ -65,8 +71,6 @@ class ExtendableEnumMeta(EnumMeta):
 
         :param value:
             The value to look up. Can be a value, or an enum instance.
-        :type value:
-            `varies`
         :raises:
             :class:`ValueError` if the value isn't found anywhere.
         """
@@ -86,24 +90,29 @@ class ExtendableEnumMeta(EnumMeta):
 
     @property
     def __members__(cls):
-        members = OrderedDict(super(ExtendableEnumMeta, cls).__members__)
+        # type: (Type[T]) -> Mapping[str, T]
+        members = OrderedDict(super(ExtendableEnumMeta, cls).__members__)  # type: ignore[misc]
         for subclass in cls.__subclasses__():
             members.update(subclass.__members__)
         return members
 
     def __contains__(cls, member):
+        # type: (Type[T], object) -> bool
         if super(ExtendableEnumMeta, cls).__contains__(member):
             return True
 
         def in_(subclass):
+            # type: (Any) -> bool
             return member in subclass
 
         return any(map(in_, cls.__subclasses__()))
 
     def __dir__(cls):
+        # type: () -> List[str]
         return list(set(super(ExtendableEnumMeta, cls).__dir__()).union(*map(dir, cls.__subclasses__())))
 
     def __getitem__(cls, name):
+        # type: (Type[T], str) -> T
         try:
             return super(ExtendableEnumMeta, cls).__getitem__(name)
         except KeyError:
@@ -119,6 +128,7 @@ class ExtendableEnumMeta(EnumMeta):
             reraise(*exc_info)
 
     def __getattr__(cls, name):
+        # type: (str) -> Any
         try:
             return super(ExtendableEnumMeta, cls).__getattr__(name)
         except AttributeError:
@@ -140,10 +150,13 @@ class ExtendableEnumMeta(EnumMeta):
             reraise(*exc_info)
 
     def __iter__(cls):
+        # type: (Type[T]) -> Iterator[T]
         return chain(super(ExtendableEnumMeta, cls).__iter__(), chain.from_iterable(map(iter, cls.__subclasses__())))
 
     def __len__(cls):
+        # type: () -> int
         return super(ExtendableEnumMeta, cls).__len__() + sum(map(len, cls.__subclasses__()))
 
     def __reversed__(cls):
+        # type: () -> Iterator[T]
         return reversed(list(cls))
