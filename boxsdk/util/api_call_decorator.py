@@ -25,12 +25,8 @@ def api_call(method):
 
     :param method:
         The method to decorate.
-    :type method:
-        `callable`
     :return:
         A wrapped method that can pass extra request data to the network layer.
-    :rtype:
-        :class:`APICallWrapper`
     """
     return cast(F, APICallWrapper(method))
 
@@ -45,11 +41,11 @@ class APICallWrapper(object):
         update_wrapper(self, func_that_makes_an_api_call)
 
     def __call__(self, cloneable_instance, *args, **kwargs):
-        # type: (object, Any, Any) -> Any
+        # type: (Any, *Any, **Any) -> Any
         return self.__get__(cloneable_instance, type(cloneable_instance))(*args, **kwargs)
 
     def __get__(self, _instance, owner):
-        # type: (Optional[object], object) -> Any
+        # type: (Any, Any) -> Any
         # `APICallWrapper` is imitating a function. For native functions,
         # ```func.__get__(None, cls)``` always returns `func`.
         if _instance is None:
@@ -69,16 +65,17 @@ class APICallWrapper(object):
 
         @wraps(self._func_that_makes_an_api_call)
         def call(instance, *args, **kwargs):
+            # type: (Any, *Any, **Any) -> Any
             extra_network_parameters = kwargs.pop('extra_network_parameters', None)
             if extra_network_parameters:
                 # If extra_network_parameters is specified, then clone the instance, and specify the parameters
                 # as the defaults to be used.
                 instance = instance.clone(instance.session.with_default_network_request_kwargs(extra_network_parameters))
 
-            method = self._func_that_makes_an_api_call.__get__(instance, owner)
+            method = self._func_that_makes_an_api_call.__get__(instance, owner)  # type: ignore[attr-defined]
             return method(*args, **kwargs)
 
         # Since the caller passed a non-`None` instance to `__get__()`, they
         # want a bound method back, not an unbound function. Thus, we must bind
         # `call()` to `_instance` and then return that bound method.
-        return call.__get__(_instance, owner)
+        return call.__get__(_instance, owner)  # type: ignore[attr-defined]
