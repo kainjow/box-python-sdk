@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 
 from .box_object_collection import BoxObjectCollection
 
+from typing import Any, Dict, Iterable, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..session.session import Session
+
 
 class LimitOffsetBasedObjectCollection(BoxObjectCollection):
     """
@@ -15,19 +20,17 @@ class LimitOffsetBasedObjectCollection(BoxObjectCollection):
 
     def __init__(
             self,
-            session,
-            url,
-            limit=None,
-            fields=None,
-            additional_params=None,
-            return_full_pages=False,
-            offset=0,
-    ):
+            session,  # type: Session
+            url,  # type: str
+            limit=None,  # type: Optional[int]
+            fields=None,  # type: Optional[Iterable[str]]
+            additional_params=None,  # type: Optional[Dict[Any, Any]]
+            return_full_pages=False,  # type: bool
+            offset=0,  # type: Optional[int]
+    ):  # type: (...) -> None
         """
         :param offset:
             The offset index to start paging from.
-        :type offset:
-            `int`
         """
         super(LimitOffsetBasedObjectCollection, self).__init__(
             session,
@@ -40,6 +43,7 @@ class LimitOffsetBasedObjectCollection(BoxObjectCollection):
         self._offset = offset
 
     def _update_pointer_to_next_page(self, response_object):
+        # type: (Dict[Any, Any]) -> None
         """Baseclass override."""
         total_count = response_object['total_count']
 
@@ -65,20 +69,24 @@ class LimitOffsetBasedObjectCollection(BoxObjectCollection):
 
         # de-none-ify the _offset value so that the arthimatic below works
         self._offset = self._offset or 0
+        limit = self._limit or 0
 
-        if total_count >= self._offset + self._limit:
-            self._offset += self._limit
+        if total_count >= self._offset + limit:
+            self._offset += limit
         else:
             self._offset = total_count
 
     def _has_more_pages(self, response_object):
+        # type: (Dict[Any, Any]) -> bool
         """Baseclass override."""
         return self._offset < response_object['total_count']
 
     def _next_page_pointer_params(self):
+        # type: () -> Dict[str, object]
         """Baseclass override."""
         return {'offset': self._offset}
 
     def next_pointer(self):
+        # type: () -> object
         """Baseclass override."""
         return self._offset

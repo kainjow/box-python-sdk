@@ -9,6 +9,12 @@ from six import add_metaclass
 
 from boxsdk.pagination.page import Page
 
+from typing import Any, Dict, Iterable, Iterator, Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..session.session import Session
+    from ..object.base_object import BaseObject
+
 
 @add_metaclass(ABCMeta)
 class BoxObjectCollection(collections.Iterator, object):
@@ -31,41 +37,29 @@ class BoxObjectCollection(collections.Iterator, object):
 
     def __init__(
             self,
-            session,
-            url,
-            limit=None,
-            fields=None,
-            additional_params=None,
-            return_full_pages=False,
-    ):
+            session,  # type: Session
+            url,  # type: str
+            limit=None,  # type: Optional[int]
+            fields=None,  # type: Optional[Iterable[str]]
+            additional_params=None,  # type: Dict[Any, Any]
+            return_full_pages=False,  # type: bool
+    ):  # type: (...) -> None
         """
         :param session:
             The Box session used to make requests.
-        :type session:
-            :class:`BoxSession`
         :param url:
             The endpoint url to hit.
-        :type url:
-            `unicode`
         :param limit:
             The number of entries for each page to return. The default, as well as the upper limit of this value,
             differs by endpoint. See https://developer.box.com/en/reference. If limit is set to None, then the default
             limit (returned by Box in the response) is used.
-        :type limit:
-            `int` or None
         :param fields:
             List of fields to request. If None, will return the default fields for the object.
-        :type fields:
-            `Iterable` of `unicode` or None
         :param additional_params:
             Additional HTTP params to send in the request.
-        :type additional_params:
-            `dict` or None
         :param return_full_pages:
             If True, then the returned iterator for this collection will return full pages of Box objects on each
             call to next(). If False, the iterator will return a single Box object on each next() call.
-        :type return_full_pages:
-            `bool`
         """
         super(BoxObjectCollection, self).__init__()
         self._session = session
@@ -75,17 +69,15 @@ class BoxObjectCollection(collections.Iterator, object):
         self._additional_params = additional_params
         self._return_full_pages = return_full_pages
         self._has_retrieved_all_items = False
-        self._all_items = None
+        self._all_items = None  # type: Optional[Iterator[Union[Page, BaseObject]]]
 
     def next(self):
+        # type: () -> Union[Page, BaseObject]
         """
         Returns either a Page (a Sequence of BaseObjects) or a BaseObject depending on self._return_full_pages.
 
         Invoking this method may make an API call to Box. Any exceptions that can occur while making requests
         may be raised in this method.
-
-        :rtype:
-            :class:`Page` or :class:`BaseObject`
         """
         if self._all_items is None:
             self._all_items = self._items_generator()
@@ -94,10 +86,7 @@ class BoxObjectCollection(collections.Iterator, object):
     __next__ = next
 
     def _items_generator(self):
-        """
-        :rtype:
-            :class:`Page` or :class:`BaseObject`
-        """
+        # type: () -> Iterator[Union[Page, BaseObject]]
         while not self._has_retrieved_all_items:
             response_object = self._load_next_page()
 
@@ -120,14 +109,12 @@ class BoxObjectCollection(collections.Iterator, object):
                     yield entry
 
     def _load_next_page(self):
+        # type: () -> Dict[Any, Any]
         """
         Request the next page of entries from Box. Raises any network-related exceptions, including BoxAPIException.
         Returns a parsed dictionary of the JSON response from Box
-
-        :rtype:
-            `dict`
         """
-        params = {}
+        params = {}  # type: Dict[str, object]
         if self._limit is not None:
             params['limit'] = self._limit
         if self._fields:
@@ -140,6 +127,7 @@ class BoxObjectCollection(collections.Iterator, object):
 
     @abstractmethod
     def _update_pointer_to_next_page(self, response_object):
+        # type: (Dict[Any, Any]) -> None
         """
         Update the internal pointer attribute of this class to what will be used to request the next page
         of Box objects.
@@ -148,45 +136,36 @@ class BoxObjectCollection(collections.Iterator, object):
 
         :param response_object:
             The parsed HTTP response from Box after requesting more pages.
-        :type response_object:
-            `dict`
         """
         raise NotImplementedError
 
     @abstractmethod
     def _has_more_pages(self, response_object):
+        # type: (Dict[Any, Any]) -> bool
         """
         Are there more pages of entries to query Box for? This gets invoked after self._update_pointer_to_next_page().
 
         :param response_object:
             The parsed HTTP response from Box after requesting more pages.
-        :type response_object:
-            `dict`
-        :rtype:
-            `bool`
         """
         raise NotImplementedError
 
     @abstractmethod
     def _next_page_pointer_params(self):
+        # type: () -> Dict[str, object]
         """
         The dict of HTTP params that specify which page of Box objects to retrieve.
-
-        :rtype:
-            `dict`
         """
         raise NotImplementedError
 
     @abstractmethod
     def next_pointer(self):
+        # type: () -> object
         """
         The pointer that will be used to request the next page of Box objects.
 
         For limit-offset based paging, this is an offset. For marker-based paging, this is a marker.
 
         The pointer only gets progressed upon successful page requests to Box.
-
-        :rtype:
-            varies
         """
         raise NotImplementedError
